@@ -85,6 +85,14 @@ export default function App() {
 
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-[#0A0A0A] text-[#FFFFFF] overflow-x-hidden antialiased font-sans">
+      {/* Keyboard Bypass Skip Link - WCAG AA Spec */}
+      <a 
+        href="#main-content-stage" 
+        className="sr-only focus:not-sr-only absolute top-4 left-4 bg-[#EAB308] text-black text-[10px] font-mono font-black p-3.5 border border-black z-[999] uppercase tracking-widest outline-none focus:ring-2 focus:ring-white"
+      >
+        Skip to Main Content
+      </a>
+
       {/* LEFT SIDEBAR CONTROLS & RUNTIME PROFILE CONTROLLERS */}
       <aside className="w-full lg:w-80 bg-[#0A0A0A] border-b lg:border-b-0 lg:border-r border-white/10 p-4 md:p-6 flex flex-col justify-between shrink-0">
         <div className="space-y-6 lg:space-y-8">
@@ -246,8 +254,8 @@ export default function App() {
         </div>
       </aside>
 
-      {/* RIGHT WORKSPACE GRAPHICAL CONTENT FIELD */}
-      <main className="flex-1 bg-transparent p-4 md:p-8 flex flex-col justify-between max-w-7xl mx-auto w-full">
+      {/* RIGHT WORKSPACE GRAPHICAL CONTENT FIELD - WCAG AA Landmark */}
+      <main id="main-content-stage" className="flex-1 bg-transparent p-4 md:p-8 flex flex-col justify-between max-w-7xl mx-auto w-full">
         {/* Workspace stage dynamic headers & notification log tickers */}
         <div className="bg-[#121212] mb-6 p-4 rounded-none border border-white/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-3.5">
           <div className="flex items-center gap-2.5">

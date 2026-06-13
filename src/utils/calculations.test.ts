@@ -4,7 +4,9 @@ import {
   calculateNetDailyCO2,
   calculateBudgetTrajectoryDays,
   calculateYearBaseline,
-  calculateSimulatedYearOffset
+  calculateSimulatedYearOffset,
+  calculateCarbonFootprint,
+  generateAIRecommendations
 } from './calculations';
 
 describe('Carbon ESG Calculations & Mathematical Models', () => {
@@ -76,5 +78,117 @@ describe('Carbon ESG Calculations & Mathematical Models', () => {
     // With higher travel mileage (commuteOffset = (1000 - 800) * 1.2 = 240)
     // 5000 + 240 = 5240
     expect(calculateSimulatedYearOffset(1, false, false, 1000, 280)).toBe(5240);
+  });
+
+  // --- NEW FOOTPRINT CALCULATOR AND AI RECOMMENDATION TESTS ---
+  test('calculateCarbonFootprint calculates detailed scores and categories accurately', () => {
+    const input = {
+      carMiles: 1000,
+      carEvState: false,
+      publicTransportMiles: 200,
+      rideShareMiles: 100,
+      householdElectricityKwh: 500,
+      renewableEnergyPercent: 40,
+      fuelConsumptionGal: 10,
+      domesticFlightsCount: 2,
+      intlFlightsCount: 1,
+      meatConsumptionLevel: 'heavy' as const,
+      wasteBagCount: 3
+    };
+
+    const res = calculateCarbonFootprint(input);
+
+    // Transmissions breakdown:
+    // Car mileage = 1000 * 0.404 = 404
+    // Transit mileage = 200 * 0.14 = 28
+    // Rideshare mileage = 100 * 0.35 = 35
+    // transport = 467
+    expect(res.transportEmissions).toBeCloseTo(467);
+
+    // Energy:
+    // Electricity = 500 * 0.39 * (1.0 - 0.40) = 195 * 0.60 = 117
+    // Fuel = 10 * 8.88 = 88.8
+    // energy = 205.8
+    expect(res.energyEmissions).toBeCloseTo(205.8);
+
+    // Travel:
+    // Domestic = 2 * 220 = 440
+    // Intl = 1 * 850 = 850
+    // travel = 1290
+    expect(res.travelEmissions).toBe(1290);
+
+    // Lifestyle:
+    // heavy meat = 280
+    // waste = 3 * 4.2 * 4.3 = 54.18
+    // lifestyle = 334.18
+    expect(res.lifestyleEmissions).toBeCloseTo(334.18);
+
+    // Total Monthly = 467 + 205.8 + 1290 + 334.18 = 2296.98
+    expect(res.totalMonthly).toBeCloseTo(2296.98);
+
+    // Carbon Score calculations: max(1, min(100, Math.round(100 - (totalMonthly / 15))))
+    // 100 - (2296.98 / 15) = 100 - 153.13 = -53.13 -> Clamped to 1
+    expect(res.carbonScore).toBe(1);
+  });
+
+  test('calculateCarbonFootprint awards behavior bonuses for EV and renewable shares', () => {
+    const sampleInput = {
+      carMiles: 0,
+      carEvState: true, // +10 Bonus points
+      publicTransportMiles: 0,
+      rideShareMiles: 0,
+      householdElectricityKwh: 100,
+      renewableEnergyPercent: 80, // >= 50% yields +15 Bonus points
+      fuelConsumptionGal: 0,
+      domesticFlightsCount: 0,
+      intlFlightsCount: 0,
+      meatConsumptionLevel: 'none' as const, // Vegan yields +10 Bonus points
+      wasteBagCount: 0
+    };
+
+    const result = calculateCarbonFootprint(sampleInput);
+    // base emissions:
+    // transport = 0
+    // electricity = 100 * 0.39 * (1 - 0.8) = 100 * 0.39 * 0.2 = 7.8
+    // fuel = 0 -> energy = 7.8
+    // travel = 0
+    // food = vegan = 55, waste = 0 -> lifestyle = 55
+    // totalMonthly = 62.8
+    // base carbonScore = 100 - 62.8/15 = 100 - 4 = 96
+    // bonus = +10 (EV) + 15 (Solar) + 10 (Vegan) = +35
+    // sustainabilityScore = min(100, 96 + 35) = 100
+    expect(result.carbonScore).toBe(96);
+    expect(result.sustainabilityScore).toBe(100);
+  });
+
+  test('generateAIRecommendations correctly reacts to resource vulnerabilities', () => {
+    const input = {
+      carMiles: 1200,
+      carEvState: false, // high IC mileage triggers EV transition advice
+      publicTransportMiles: 0,
+      rideShareMiles: 0,
+      householdElectricityKwh: 400,
+      renewableEnergyPercent: 10, // low renewable triggers solar advice
+      fuelConsumptionGal: 0,
+      domesticFlightsCount: 0,
+      intlFlightsCount: 1, // flight trigger virtual corporate advice
+      meatConsumptionLevel: 'heavy' as const, // heavy meat triggers diet advisory
+      wasteBagCount: 3 // solid waste trigger composting advice
+    };
+
+    const list = generateAIRecommendations(input);
+
+    // Checks that high-impact topics are highlighted
+    const evRec = list.find(r => r.id === 'rec-ev');
+    const solarRec = list.find(r => r.id === 'rec-solar');
+    const dietRec = list.find(r => r.id === 'rec-diet');
+
+    expect(evRec).toBeDefined();
+    expect(solarRec).toBeDefined();
+    expect(dietRec).toBeDefined();
+
+    expect(evRec?.category).toBe('transport');
+    expect(evRec?.impact).toBe('HIGH');
+    expect(solarRec?.category).toBe('energy');
   });
 });

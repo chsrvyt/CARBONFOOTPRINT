@@ -42,4 +42,4 @@ export interface EcosphereTree {
 export type WorkspaceModule = 'COMMAND' | 'ECOSPHERE' | 'GREENFLOW';
 export type SubScreenCommand = 'DASHBOARD' | 'ACTIONS' | 'TELEMETRY';
 export type SubScreenEcosphere = 'GROVE' | 'METRICS';
-export type SubScreenGreenFlow = 'OVERVIEW' | 'INGESTION' | 'LEDGER' | 'SIMULATOR' | 'REPORTING';
+export type SubScreenGreenFlow = 'OVERVIEW' | 'CALCULATOR' | 'INGESTION' | 'LEDGER' | 'SIMULATOR' | 'REPORTING';
