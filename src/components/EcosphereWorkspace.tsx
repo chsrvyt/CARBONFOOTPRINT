@@ -24,6 +24,23 @@ interface EcosphereWorkspaceProps {
   totalPoints: number;
 }
 
+// Quick activity habit log templates defined at module-level to optimize memory of execution loops
+const QUICK_ACTIVITIES = [
+  { name: 'Fully Plant-Based Meal Log', pts: 30, co2: -2.1, cat: 'food' },
+  { name: 'Walked or Commuted via Bicycle', pts: 50, co2: -4.5, cat: 'transport' },
+  { name: 'Eliminated Grid Phantom Idle Power', pts: 25, co2: -1.2, cat: 'energy' },
+  { name: 'Recycled Organic Kitchen Compost', pts: 15, co2: -1.0, cat: 'food' },
+  { name: 'Hang-Dried Laundry Sequence', pts: 40, co2: -2.3, cat: 'energy' },
+];
+
+// Greenhouse sapling shop catalog index
+const TREE_CATALOG = [
+  { species: 'Cypress', cost: 300, desc: 'Tall, evergreen conifer', hues: ['#047857', '#065f46', '#059669'] },
+  { species: 'Oak', cost: 500, desc: 'Majestic hardwood dome', hues: ['#0f766e', '#115e59', '#14b8a6'] },
+  { species: 'Cherry Blossom', cost: 400, desc: 'Delicate pink spring leaves', hues: ['#db2777', '#be185d', '#f472b6'] },
+  { species: 'Maple', cost: 350, desc: 'Rich autumnal red glow', hues: ['#b91c1c', '#991b1b', '#f87171'] },
+];
+
 export default function EcosphereWorkspace({
   logs,
   onAddLog,
@@ -35,23 +52,6 @@ export default function EcosphereWorkspace({
   const [showLogModal, setShowLogModal] = useState(false);
   const [successAnimation, setSuccessAnimation] = useState<string | null>(null);
   const [saplingNickname, setSaplingNickname] = useState('');
-
-  // Quick activity log templates
-  const QUICK_ACTIVITIES = [
-    { name: 'Fully Plant-Based Meal Log', pts: 30, co2: -2.1, cat: 'food' },
-    { name: 'Walked or Commuted via Bicycle', pts: 50, co2: -4.5, cat: 'transport' },
-    { name: 'Eliminated Grid Phantom Idle Power', pts: 25, co2: -1.2, cat: 'energy' },
-    { name: 'Recycled Organic Kitchen Compost', pts: 15, co2: -1.0, cat: 'food' },
-    { name: 'Hang-Dried Laundry Sequence', pts: 40, co2: -2.3, cat: 'energy' },
-  ];
-
-  // Plant shop pricing index
-  const TREE_CATALOG = [
-    { species: 'Cypress', cost: 300, desc: 'Tall, evergreen conifer', hues: ['#047857', '#065f46', '#059669'] },
-    { species: 'Oak', cost: 500, desc: 'Majestic hardwood dome', hues: ['#0f766e', '#115e59', '#14b8a6'] },
-    { species: 'Cherry Blossom', cost: 400, desc: 'Delicate pink spring leaves', hues: ['#db2777', '#be185d', '#f472b6'] },
-    { species: 'Maple', cost: 350, desc: 'Rich autumnal red glow', hues: ['#b91c1c', '#991b1b', '#f87171'] },
-  ];
 
   const handleQuickLog = (act: typeof QUICK_ACTIVITIES[0]) => {
     onAddLog({
@@ -273,7 +273,7 @@ export default function EcosphereWorkspace({
                   <p className="text-xs text-zinc-400">Dedicate or label your next planted tree node (adds a custom sign in the virtual grove):</p>
                 </div>
                 <div className="w-full md:w-auto flex items-center bg-black border border-white/10 hover:border-[#EAB308]/40 transition-colors">
-                  <span className="text-[10px] font-mono text-zinc-500 pl-3 uppercase">LABEL:</span>
+                  <label htmlFor="sapling-nickname-input" className="text-[10px] font-mono text-zinc-500 pl-3 uppercase cursor-pointer shrink-0">LABEL:</label>
                   <input
                     id="sapling-nickname-input"
                     type="text"

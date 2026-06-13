@@ -1,6 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ActionLog, SubScreenCommand } from '../types';
 import { COMMMAND_LIBRARY_ACTIONS, LibraryActionItem } from '../data';
+import { 
+  calculateDailySavingsAvg,
+  calculateNetDailyCO2,
+  calculateBudgetTrajectoryDays
+} from '../utils/calculations';
 import { 
   Zap, 
   Flame, 
@@ -34,24 +39,40 @@ export default function CommandWorkspace({
   const [searchQuery, setSearchQuery] = useState('');
   const [activatedActionId, setActivatedActionId] = useState<string | null>(null);
 
-  // Derive stats for Terra Command
-  const currentDailyAvg = Math.abs(
-    logs.reduce((sum, log) => sum + (log.co2Amount < 0 ? log.co2Amount : 0), 0) / 7
-  ).toFixed(1);
+  // Derive stats for Terra Command using optimized, memoized calculation functions
+  const currentDailyAvg = useMemo(() => {
+    return calculateDailySavingsAvg(logs).toFixed(1);
+  }, [logs]);
 
-  // We have a daily "CO2 budget" of 30kg. Current average savings reduce our net output.
-  const baseLineCO2 = 34.2; // kg/day
-  const currentSavings = Math.abs(logs.reduce((sum, l) => sum + (l.co2Amount < 0 ? l.co2Amount : 0), 0)) / 10;
-  const netCO2 = Math.max(2.1, baseLineCO2 - currentSavings).toFixed(1);
-  const remainingDays = Math.max(1, Math.min(99, Math.floor((1200 / (parseFloat(netCO2) * 3)))));
+  const netCO2 = useMemo(() => {
+    return calculateNetDailyCO2(logs).toFixed(1);
+  }, [logs]);
+
+  const remainingDays = useMemo(() => {
+    const netCO2Val = parseFloat(netCO2);
+    return calculateBudgetTrajectoryDays(netCO2Val);
+  }, [netCO2]);
+
+  // Memoize filtered and searched actions to keep component renders lighting fast
+  const filteredActions = useMemo(() => {
+    return COMMMAND_LIBRARY_ACTIONS
+      .filter(a => actionCategoryFilter === 'all' || a.category === actionCategoryFilter)
+      .filter(a => {
+        if (!searchQuery) return true;
+        const query = searchQuery.toLowerCase();
+        return a.name.toLowerCase().includes(query) || 
+               a.desc.toLowerCase().includes(query) || 
+               a.category.toLowerCase().includes(query);
+      });
+  }, [actionCategoryFilter, searchQuery]);
 
   // Group emissions by category for Top Emitters chart
-  const categories = {
+  const categories = useMemo(() => ({
     transport: 124.5,
     food: 43.2,
     energy: 98.1,
     corporate: 210.3
-  };
+  }), []);
 
   const handleApplyProtocol = (action: LibraryActionItem) => {
     onAddLog({
@@ -320,7 +341,7 @@ export default function CommandWorkspace({
               <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto items-stretch sm:items-center">
                 {/* Search Text Input Box */}
                 <div className="flex items-center bg-black border border-white/10 hover:border-[#EAB308]/40 transition-colors px-3 py-1 text-[10px] uppercase font-mono w-full sm:w-64">
-                  <span className="text-zinc-500 mr-2 font-bold font-mono">SEARCH:</span>
+                  <label htmlFor="protocol-search-input" className="text-zinc-500 mr-2 font-bold font-mono cursor-pointer shrink-0">SEARCH:</label>
                   <input
                     id="protocol-search-input"
                     type="text"
@@ -361,16 +382,7 @@ export default function CommandWorkspace({
 
             {/* Protocols Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {COMMMAND_LIBRARY_ACTIONS
-                .filter(a => actionCategoryFilter === 'all' || a.category === actionCategoryFilter)
-                .filter(a => {
-                  if (!searchQuery) return true;
-                  const query = searchQuery.toLowerCase();
-                  return a.name.toLowerCase().includes(query) || 
-                         a.desc.toLowerCase().includes(query) || 
-                         a.category.toLowerCase().includes(query);
-                })
-                .map((act) => (
+              {filteredActions.map((act) => (
                   <div 
                     key={act.id}
                     id={`protocol-card-${act.id}`}

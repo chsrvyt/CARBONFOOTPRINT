@@ -1,5 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ActionLog, ConnectionItem, SimulatorState, SubScreenGreenFlow } from '../types';
+import { 
+  calculateYearBaseline as calculateYearBaselineImport,
+  calculateSimulatedYearOffset
+} from '../utils/calculations';
 import { 
   BarChart3, 
   RefreshCcw, 
@@ -54,13 +58,17 @@ export default function GreenFlowWorkspace({
   const [simEv, setSimEv] = useState(false);
   const [simSolar, setSimSolar] = useState(false);
 
-  // Derive ledger and summaries
-  const totalYTD = logs.reduce((sum, entry) => sum + entry.co2Amount, 1620).toFixed(1);
+  // Derive ledger and summaries with high efficiency useMemos
+  const totalYTD = useMemo(() => {
+    return logs.reduce((sum, entry) => sum + entry.co2Amount, 1620).toFixed(1);
+  }, [logs]);
 
-  const filteredLogs = logs.filter((log) => {
-    if (filterSource === 'all') return true;
-    return log.source === filterSource;
-  });
+  const filteredLogs = useMemo(() => {
+    return logs.filter((log) => {
+      if (filterSource === 'all') return true;
+      return log.source === filterSource;
+    });
+  }, [logs, filterSource]);
 
   const handleCreateCustomLog = (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,21 +120,13 @@ export default function GreenFlowWorkspace({
     }, 280);
   };
 
-  // Live what-if calculations
+  // Live what-if calculations using pure, centralized algorithms
   const calculateYearOffset = (yearIdx: number) => {
-    // Basic projection decay formula
-    const baseValue = 5400 - (yearIdx * 400);
-    let savingMultiplier = 1;
-    if (simEv) savingMultiplier -= 0.15;
-    if (simSolar) savingMultiplier -= 0.20;
-    const commuteOffset = (simCommute - 800) * 1.2;
-    const gridOffset = (simGrid - 280) * 4.5;
-    
-    return Math.max(800, (baseValue * savingMultiplier) + commuteOffset + gridOffset).toFixed(0);
+    return calculateSimulatedYearOffset(yearIdx, simEv, simSolar, simCommute, simGrid).toFixed(0);
   };
 
   const calculateYearBaseline = (yearIdx: number) => {
-    return Math.max(1200, 5400 - (yearIdx * 250)).toFixed(0);
+    return calculateYearBaselineImport(yearIdx).toFixed(0);
   };
 
   return (
@@ -369,8 +369,9 @@ export default function GreenFlowWorkspace({
 
               <form onSubmit={handleCreateCustomLog} className="space-y-4 font-mono text-[10px] uppercase tracking-wider">
                 <div className="space-y-1.5">
-                  <label className="text-[9px] text-zinc-400 font-mono uppercase font-bold tracking-widest">Transaction Source Node</label>
+                  <label htmlFor="gf-new-log-source" className="text-[9px] text-zinc-400 font-mono uppercase font-bold tracking-widest cursor-pointer">Transaction Source Node</label>
                   <select 
+                    id="gf-new-log-source"
                     value={newLogSource}
                     onChange={(e) => setNewLogSource(e.target.value)}
                     className="w-full bg-black border border-white/10 rounded-none p-2.5 text-zinc-200 outline-none focus:border-[#EAB308] cursor-pointer"
@@ -383,8 +384,9 @@ export default function GreenFlowWorkspace({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[9px] text-zinc-400 font-mono uppercase font-bold tracking-widest">Footprint Category</label>
+                  <label htmlFor="gf-new-log-category" className="text-[9px] text-zinc-400 font-mono uppercase font-bold tracking-widest cursor-pointer">Footprint Category</label>
                   <select 
+                    id="gf-new-log-category"
                     value={newLogCategory}
                     onChange={(e) => setNewLogCategory(e.target.value as any)}
                     className="w-full bg-black border border-white/10 rounded-none p-2.5 text-zinc-200 outline-none focus:border-[#EAB308] cursor-pointer"
@@ -397,8 +399,9 @@ export default function GreenFlowWorkspace({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[9px] text-zinc-400 font-mono uppercase font-bold tracking-widest">Description / Invoice Detail</label>
+                  <label htmlFor="gf-new-log-desc" className="text-[9px] text-zinc-400 font-mono uppercase font-bold tracking-widest cursor-pointer">Description / Invoice Detail</label>
                   <input
+                    id="gf-new-log-desc"
                     type="text"
                     required
                     value={newLogDesc}
@@ -409,8 +412,9 @@ export default function GreenFlowWorkspace({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[9px] text-zinc-400 font-mono uppercase font-bold tracking-widest">Measured Footprint kg CO₂e</label>
+                  <label htmlFor="gf-new-log-co2" className="text-[9px] text-zinc-400 font-mono uppercase font-bold tracking-widest cursor-pointer">Measured Footprint kg CO₂e</label>
                   <input
+                    id="gf-new-log-co2"
                     type="number"
                     step="0.1"
                     required
@@ -520,10 +524,11 @@ export default function GreenFlowWorkspace({
                 {/* Sliders Commute */}
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-zinc-400">Monthly Fleet Logistics Travel:</span>
+                    <label htmlFor="sim-commute-range" className="text-zinc-400 cursor-pointer">Monthly Fleet Logistics Travel:</label>
                     <span className="font-black text-white">{simCommute} MILES</span>
                   </div>
                   <input
+                    id="sim-commute-range"
                     type="range"
                     min="100"
                     max="3000"
@@ -531,16 +536,18 @@ export default function GreenFlowWorkspace({
                     value={simCommute}
                     onChange={(e) => setSimCommute(parseInt(e.target.value))}
                     className="w-full accent-[#EAB308] cursor-pointer bg-black h-1"
+                    aria-label="Monthly Fleet Logistics Travel Miles"
                   />
                 </div>
 
                 {/* Grid utility */}
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-zinc-400">Power Grid Fuel Intensity:</span>
+                    <label htmlFor="sim-grid-range" className="text-zinc-400 cursor-pointer">Power Grid Fuel Intensity:</label>
                     <span className="font-black text-white">{simGrid} G CO₂/kWH</span>
                   </div>
                   <input
+                    id="sim-grid-range"
                     type="range"
                     min="50"
                     max="600"
@@ -548,6 +555,7 @@ export default function GreenFlowWorkspace({
                     value={simGrid}
                     onChange={(e) => setSimGrid(parseInt(e.target.value))}
                     className="w-full accent-[#EAB308] cursor-pointer bg-black h-1"
+                    aria-label="Power Grid Fuel Intensity Grams carbon per kilowatt-hour"
                   />
                 </div>
 
