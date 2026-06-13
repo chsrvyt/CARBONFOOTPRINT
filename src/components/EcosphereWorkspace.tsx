@@ -275,6 +275,7 @@ export default function EcosphereWorkspace({
                 <div className="w-full md:w-auto flex items-center bg-black border border-white/10 hover:border-[#EAB308]/40 transition-colors">
                   <span className="text-[10px] font-mono text-zinc-500 pl-3 uppercase">LABEL:</span>
                   <input
+                    id="sapling-nickname-input"
                     type="text"
                     value={saplingNickname}
                     onChange={(e) => setSaplingNickname(e.target.value)}

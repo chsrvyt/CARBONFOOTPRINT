@@ -322,6 +322,7 @@ export default function CommandWorkspace({
                 <div className="flex items-center bg-black border border-white/10 hover:border-[#EAB308]/40 transition-colors px-3 py-1 text-[10px] uppercase font-mono w-full sm:w-64">
                   <span className="text-zinc-500 mr-2 font-bold font-mono">SEARCH:</span>
                   <input
+                    id="protocol-search-input"
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -330,6 +331,7 @@ export default function CommandWorkspace({
                   />
                   {searchQuery && (
                     <button 
+                      id="clear-protocol-search-btn"
                       onClick={() => setSearchQuery('')} 
                       className="text-zinc-500 hover:text-white font-black text-xs px-1 pl-2"
                     >

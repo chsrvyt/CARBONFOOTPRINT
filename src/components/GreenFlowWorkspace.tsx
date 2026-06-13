@@ -65,11 +65,13 @@ export default function GreenFlowWorkspace({
   const handleCreateCustomLog = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newLogDesc) return;
+    const co2ValRaw = parseFloat(newLogCo2);
+    const co2Val = isNaN(co2ValRaw) ? 0.0 : co2ValRaw;
     onAddLog({
       category: newLogCategory,
       description: newLogDesc,
-      co2Amount: parseFloat(newLogCo2),
-      pointsEarned: Math.abs(Math.floor(parseFloat(newLogCo2) * 5)),
+      co2Amount: co2Val,
+      pointsEarned: Math.abs(Math.floor(co2Val * 5)),
       source: newLogSource,
       status: 'completed'
     });
