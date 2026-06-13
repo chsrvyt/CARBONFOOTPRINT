@@ -1,0 +1,6 @@
+{
+  "name": "TerraFlow Carbon ESG Terminal",
+  "description": "A high-fidelity ESG carbon tracking and gamified suite. Unifies enterprise accounting (Green Flow Terminal), personal ecology modeling (The Ecosphere), and cybernetic telemetry dashboards (Terra Command) with interactive what-if projections, live connections, and compliance exports.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

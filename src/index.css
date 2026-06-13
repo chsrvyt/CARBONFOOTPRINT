@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Space Grotesk", sans-serif;
+  --font-space-grotesk: "Space Grotesk", sans-serif;
+  --font-jetbrains: "JetBrains Mono", monospace;
+  --font-karla: "Karla", sans-serif;
+  --font-lora: "Lora", serif;
+  --font-ibm-plex: "IBM Plex Mono", monospace;
+  --font-public-sans: "Public Sans", sans-serif;
+
+  --color-brand-cyan: #eab308;
+  --color-brand-green: #ffffff;
+  --color-cyber-green: #eab308;
+}
+
+/* Base style resets if any and utility classes */
+html, body, #root {
+  min-height: 100vh;
+  background-color: #0A0A0A;
+  color: #FFFFFF;
+}
+
+/* Material symbols outlined adjustment */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Bold Typography Theme Styles */
+.text-stroke-white {
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.85);
+  color: transparent;
+}
+
+.text-stroke-yellow {
+  -webkit-text-stroke: 1.5px #eab308;
+  color: transparent;
+}
+
+.text-stroke-gray {
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.25);
+  color: transparent;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 0px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
